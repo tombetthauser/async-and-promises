@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Drifting System Info</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100%;
+      background-color: #fff;
+      font-family: serif;
+      background-image: url('https://wallpaperaccess.com/full/1536061.jpg');
+      background-position: center;
+      background-size: cover;
+      color: #fff;
+      /* text-shadow: -3px 3px 0px purple; */
+    }
+    
+    .info-item {
+        font-family: monospace;
+        text-shadow: none;
+        color: #000;
+        position: absolute;
+        background-color: #eee;
+        /* color: #333;  */
+        padding: 0.5rem 1rem;
+        /* border-radius: 8px; */
+        box-shadow: -25px 35px 8px rgba(0,0,0,0.25);
+        /* text-shadow: -2px 2px 0px #fff; */
+        font-size: medium;
+        white-space: nowrap;
+        animation-name: vibrate;
+        animation-duration: 0.005s;
+        animation-iteration-count: infinite;
+        animation-direction: alternate;
+        border: 7px outset #ccc;
+    }
+
+    #info {
+        color: #fff;
+        font-size: large;
+        background-color: red;
+    }
+
+    .trashcan {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      font-size: 48px;
+      z-index: 9999;
+      cursor: pointer;
+    }
+
+    @keyframes vibrate {
+      from { transform: translate(0, 0); }
+      to { transform: translate(5px, -5px); }
+    }
+
+    /* Drift animation is added inline per element with random keyframes */
+  </style>
+</head>
+<body>
+    <div id="info">
+        Mouse: (0, 0) <br />
+        Window: 0 x 0
+    </div>
+    <h1>Local Storage Demo</h1>
+
+    <div class="section">
+      <h2>Store to Local Storage</h2>
+      <input type="text" id="storeKey" placeholder="Key" />
+      <input type="text" id="storeValue" placeholder="Value" />
+      <button onclick="storeItem()">Store</button>
+    </div>
+  
+    <div class="section">
+      <h2>Retrieve from Local Storage</h2>
+      <input type="text" id="retrieveKey" placeholder="Key" />
+      <button onclick="retrieveItem()">Retrieve</button>
+      <p><strong>Value:</strong> <span id="retrievedValue"></span></p>
+    </div>
+
+    <div class="section">
+        <h2>Clear Local Storage</h2>
+        <button onclick="clearStorage()">Clear All</button>
+      </div>
+
+      <div class="section">
+        <h2>Browse Stored Keys</h2>
+        <select id="keyDropdown" onchange="showSelectedValue()">
+          <option value="">-- Select a key --</option>
+        </select>
+        <p><strong>Selected Value:</strong> <span id="dropdownValue"></span></p>
+      </div>
+
+      <div class="section">
+        <h2>Visit Counter</h2>
+        <p><strong>You have visited this page:</strong> <span id="visitCount">Loading...</span> times.</p>
+      </div>
+
+      <div id="trashcan" class="trashcan" onclick="clearStorage()">🗑️</div>
+
+  <script>
+    const info = [];
+
+    function pushInfo(name, value) {
+      info.push(`${name}: ${value}`);
+    }
+
+    function displayInfo() {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      pushInfo('User Agent', navigator.userAgent);
+      pushInfo('Platform', navigator.platform);
+      pushInfo('Language', navigator.language);
+      pushInfo('Languages', navigator.languages.join(', '));
+      pushInfo('Cookies Enabled', navigator.cookieEnabled);
+      pushInfo('Online', navigator.onLine);
+      pushInfo('Screen Resolution', `${screen.width} x ${screen.height}`);
+      pushInfo('Color Depth', screen.colorDepth);
+      pushInfo('Pixel Depth', screen.pixelDepth);
+      pushInfo('Timezone Offset', new Date().getTimezoneOffset());
+      pushInfo('Time Zone', tz);
+      pushInfo('Java Enabled', navigator.javaEnabled());
+      pushInfo('Hardware Concurrency', navigator.hardwareConcurrency || 'N/A');
+      pushInfo('Device Memory (GB)', navigator.deviceMemory || 'N/A');
+      pushInfo('Touch Support', 'ontouchstart' in window ? 'Yes' : 'No');
+
+      const ua = navigator.userAgent;
+      let browser = 'Unknown';
+      if (ua.includes("Firefox")) browser = "Firefox";
+      else if (ua.includes("Edg")) browser = "Edge";
+      else if (ua.includes("Chrome")) browser = "Chrome";
+      else if (ua.includes("Safari")) browser = "Safari";
+      else if (ua.includes("Trident")) browser = "Internet Explorer";
+      pushInfo('Browser (detected)', browser);
+    }
+
+    function randomBetween(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    function createDriftAnimation(index) {
+      const keyframesName = `drift${index}`;
+      const x1 = randomBetween(0, 90);
+      const y1 = randomBetween(0, 90);
+      const x2 = randomBetween(0, 90);
+      const y2 = randomBetween(0, 90);
+      const x3 = randomBetween(0, 90);
+      const y3 = randomBetween(0, 90);
+
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes ${keyframesName} {
+          0% { top: ${y1}%; left: ${x1}%; }
+          50% { top: ${y2}%; left: ${x2}%; }
+          100% { top: ${y3}%; left: ${x3}%; }
+        }
+      `;
+      document.head.appendChild(style);
+      return keyframesName;
+    }
+
+    function createFloatingItem(text, index) {
+      const div = document.createElement('div');
+      div.className = 'info-item';
+      div.textContent = text;
+      const animName = createDriftAnimation(index);
+      const duration = randomBetween(2, 10).toFixed(1);
+    //   div.style.animation = `vibrate 0.005s infinite alternate, ${animName} ${duration}s linear infinite`;
+      div.style.animation = `${animName} ${duration}s linear infinite`;
+      document.body.appendChild(div);
+    }
+
+    displayInfo();
+
+    info.forEach((text, i) => {
+      createFloatingItem(text, i);
+    });
+  </script>
+
+<script>
+    const infoDiv = document.getElementById('info');
+  
+    function updateDisplay(e) {
+      const x = e.clientX;
+      const y = e.clientY;
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+  
+      infoDiv.innerHTML = `Mouse: (${x}, ${y}) <br />Window: ${width} x ${height}`;
+    }
+  
+    function updateWindowSize() {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+  
+      // Only update window size, keep last known mouse position
+      const match = infoDiv.innerHTML.match(/Mouse: \((\d+), (\d+)\)/);
+      const x = match ? match[1] : 0;
+      const y = match ? match[2] : 0;
+  
+      infoDiv.innerHTML = `Mouse: (${x}, ${y}) <br />Window: ${width} x ${height}`;
+    }
+  
+    window.addEventListener('mousemove', updateDisplay);
+    window.addEventListener('resize', updateWindowSize);
+  </script>
+  <script>
+    function storeItem() {
+      const key = document.getElementById('storeKey').value;
+      const value = document.getElementById('storeValue').value;
+      if (key && value) {
+        localStorage.setItem(key, value);
+        alert(`Stored: { ${key}: ${value} }`);
+      } else {
+        alert('Please enter both a key and a value.');
+      }
+    }
+
+    function retrieveItem() {
+      const key = document.getElementById('retrieveKey').value;
+      const value = localStorage.getItem(key);
+      document.getElementById('retrievedValue').textContent = value !== null ? value : 'Not found';
+    }
+
+    function clearStorage() {
+      const confirmClear = confirm('Are you sure you want to clear all local storage?');
+      if (confirmClear) {
+        localStorage.clear();
+        alert('Local storage has been cleared.');
+        document.getElementById('retrievedValue').textContent = '';
+      }
+    }
+
+    function updateDropdown() {
+      const dropdown = document.getElementById('keyDropdown');
+      dropdown.innerHTML = '<option value="">-- Select a key --</option>';
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        const option = document.createElement('option');
+        option.value = key;
+        option.textContent = key;
+        dropdown.appendChild(option);
+      }
+    }
+
+    function showSelectedValue() {
+      const key = document.getElementById('keyDropdown').value;
+      const value = localStorage.getItem(key);
+      document.getElementById('dropdownValue').textContent = value !== null ? value : '';
+    }
+
+    async function hashUserAgent(userAgent) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(userAgent);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      return Array.from(new Uint8Array(hashBuffer))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+    }
+
+    async function trackVisits() {
+      const userAgent = navigator.userAgent;
+      const hashedKey = await hashUserAgent(userAgent);
+      let count = parseInt(localStorage.getItem(hashedKey)) || 0;
+      count += 1;
+      localStorage.setItem(hashedKey, count);
+      document.getElementById('visitCount').textContent = count;
+    }
+
+    // Initialize dropdown on page load
+    window.onload = async () => {
+      await trackVisits();
+      updateDropdown();
+    };
+
+
+    function updateTrashcan() {
+      const trashcan = document.getElementById('trashcan');
+      if (localStorage.length > 0) {
+        trashcan.textContent = '🗑️❗'; // "Full" visual
+      } else {
+        trashcan.textContent = '🗑️'; // "Empty"
+      }
+    }
+
+    // Initial state
+    updateTrashcan();
+
+    // Update on click
+    document.getElementById('trashcan').addEventListener('click', updateTrashcan);
+  
+
+
+
+  </script>
+</body>
+</html>
